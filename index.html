@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>LeadVision CRM Enterprise · Gestão Multicampi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f0f2f8;
+            margin: 0;
+            padding: 28px 20px;
+        }
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        .units-bar {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 24px 18px;
+            margin-bottom: 24px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.02);
+            border: 1px solid #e6edf4;
+        }
+        .home-brand {
+            text-align: center;
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e6edf4;
+        }
+        .brand-icon {
+            font-size: 2.2rem;
+            margin-bottom: 4px;
+        }
+        .home-brand h2 {
+            margin: 0;
+            color: #0a2b3e;
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .brand-subtitle {
+            margin-top: 7px;
+            color: #4a627a;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .brand-credit {
+            margin-top: 10px;
+            color: #6c86a3;
+            font-size: 0.76rem;
+            line-height: 1.45;
+        }
+        .brand-credit strong {
+            color: #1e4663;
+        }
+        .select-unit-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #0a2b3e;
+        }
+        .units-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+            align-items: center;
+        }
+        .unit-btn {
+            background: #eef2fa;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: #1e4663;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        .unit-btn.active {
+            background: #1e4663;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .unit-btn:hover {
+            background: #2c7da0;
+            color: white;
+        }
+        .header {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            border: 1px solid #e6edf4;
+        }
+        h1 {
+            font-size: 2.1rem;
+            margin: 0 0 6px 0;
+            color: #0a2b3e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-weight: 700;
+        }
+        .credits {
+            font-size: 0.78rem;
+            color: #5b7288;
+            margin-top: 10px;
+            border-top: 1px solid #e9edf2;
+            padding-top: 10px;
+            display: inline-block;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            line-height: 1.45;
+        }
+        .sub {
+            color: #4a627a;
+            margin-bottom: 18px;
+            border-left: 4px solid #2c7da0;
+            padding-left: 16px;
+            font-size: 0.9rem;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+        button {
+            background: #1e4663;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover {
+            background: #0f3550;
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: white;
+            color: #1e4663;
+            border: 1px solid #cbdde9;
+        }
+        .btn-outline:hover {
+            background: #eef3fc;
+        }
+        .btn-chart {
+            background: #2c7da0;
+        }
+        .btn-danger {
+            background: #b33;
+        }
+        .btn-danger:hover {
+            background: #8b1a1a;
+        }
+        .stats-badge {
+            background: #eef2ff;
+            border-radius: 40px;
+            padding: 6px 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1f5068;
+        }
+        .empty-state {
+            background: white;
+            border-radius: 28px;
+            padding: 60px 30px;
+            text-align: center;
+            border: 1px dashed #cbdae9;
+            margin: 30px 0;
+        }
+        .filters-area {
+            background: white;
+            border-radius: 24px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            border: 1px solid #e9edf2;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 140px;
+        }
+        .filter-group label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #2c4c6e;
+            letter-spacing: 0.4px;
+        }
+        select, input {
+            padding: 8px 14px;
+            border-radius: 40px;
+            border: 1px solid #cfdfed;
+            background: white;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        select:focus, input:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 2px rgba(44,125,160,0.2);
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 20px;
+            background: white;
+            border-radius: 24px;
+            padding: 4px 0;
+            border: 1px solid #eef2f8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+        }
+        th {
+            background: #fafcff;
+            font-weight: 700;
+            color: #1f4868;
+        }
+        .clickable-name {
+            color: #2c7da0;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 3px;
+        }
+        .clickable-name:hover {
+            color: #0f5b7a;
+        }
+        .contact-badge {
+            background: #eef2fa;
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 24px;
+            margin: 30px 0 20px;
+            border: 1px solid #e2edf7;
+            display: none;
+        }
+        .chart-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+        }
+        .chart-box {
+            flex: 1;
+            min-width: 260px;
+            max-width: 420px;
+        }
+        canvas {
+            max-height: 260px;
+            width: 100%;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal {
+            background: white;
+            max-width: 650px;
+            width: 94%;
+            max-height: 90vh;
+            border-radius: 28px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: fadeUp 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        @keyframes fadeUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            background: #1e4663;
+            color: white;
+            padding: 18px 24px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .modal-header span {
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(90vh - 72px);
+            scroll-behavior: smooth;
+        }
+        .modal-field {
+            margin-bottom: 20px;
+        }
+        .modal-field label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            color: #1f3b4c;
+            font-size: 0.8rem;
+        }
+        .modal-field select, .modal-field input, .modal-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 20px;
+            border: 1px solid #cbdae9;
+            font-size: 0.9rem;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .btn-save {
+            background: #2c6e49;
+            width: 100%;
+            margin-top: 12px;
+            justify-content: center;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            padding: 13px 18px;
+            box-shadow: 0 -8px 18px rgba(255,255,255,0.95);
+        }
+        .toast-notify {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #1e4663;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1100;
+            animation: fadeInOut 3s ease forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); visibility: hidden; }
+        }
+        .footer-note {
+            margin-top: 35px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c86a3;
+        }
+        .indicator-sim {
+            color: #2c6e49;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 1.2rem;
+        }
+        .indicator-nao {
+            color: #b33;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 1.2rem;
+        }
+        .indicator-talvez {
+            color: #d68c45;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 1.2rem;
+        }
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .filter-group { min-width: 100%; }
+            .radio-group { gap: 10px; }
+            .modal-overlay {
+                align-items: flex-start;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+            .modal {
+                width: 98%;
+                max-height: 96vh;
+                border-radius: 18px;
+            }
+            .modal-header {
+                padding: 13px 16px;
+                font-size: 1rem;
+            }
+            .modal-header span {
+                font-size: 1.25rem;
+            }
+            .modal-body {
+                padding: 14px;
+                max-height: calc(96vh - 58px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .modal-field {
+                margin-bottom: 14px;
+            }
+            .modal-field label {
+                font-size: 0.82rem;
+            }
+            .modal-field select,
+            .modal-field input,
+            .modal-field textarea {
+                font-size: 16px;
+                padding: 11px 13px;
+                border-radius: 18px;
+            }
+            .btn-save {
+                padding: 14px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="units-bar">
+        <div class="home-brand">
+            <div class="brand-icon">📊</div>
+            <h2>LeadVision CRM Enterprise</h2>
+            <div class="brand-subtitle">
+                Plataforma Inteligente para Gestão de Inscrições, Relacionamento Acadêmico e Conversão de Leads
+            </div>
+            <div class="brand-credit">
+                LeadVision CRM Enterprise © 2026 | Idealizado e desenvolvido por
+                <strong>Antonio Carlos de Lima Filho</strong> • Diretor da UNINASSAU Salvador •
+                Soluções Inteligentes para Captação, Relacionamento Acadêmico e Gestão Orientada por Dados
+            </div>
+        </div>
+
+        <div class="select-unit-title">🏢 Selecione a unidade:</div>
+        <div class="units-grid" id="unitsGrid"></div>
+    </div>
+
+    <div id="crmContent" style="display: none;">
+        <div class="header">
+            <h1>📋 LeadVision CRM Enterprise</h1>
+            <div class="credits">LeadVision CRM Enterprise © 2026 | Idealizado e desenvolvido por Antonio Carlos de Lima Filho • Diretor da UNINASSAU Salvador • Soluções Inteligentes para Captação, Relacionamento Acadêmico e Gestão Orientada por Dados</div>
+            <div class="sub">Plataforma Inteligente para Gestão de Inscrições, Relacionamento Acadêmico, Conversão de Leads e Acompanhamento Estratégico Multicampi</div>
+            <div class="toolbar">
+                <div>
+                    <button id="uploadBtn">📂 Anexar Excel (novos leads)</button>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls" style="display:none" />
+                    <button id="exportBtn" class="btn-outline">📎 Exportar dados + acompanhamentos</button>
+                    <button id="toggleChartBtn" class="btn-chart">📊 Mostrar Gráficos</button>
+                </div>
+                <div class="stats-badge" id="statsInfo">⏳ Nenhum dado carregado</div>
+            </div>
+        </div>
+
+        <div class="filters-area" id="filtersPanel">
+            <div class="filter-group"><label>🏷️ Classificação</label><select id="filterClassificacao"><option value="">Todas</option></select></div>
+            <div class="filter-group"><label>📚 Curso</label><select id="filterCurso"><option value="">Todos</option></select></div>
+            <div class="filter-group"><label>💰 Status Transação</label><select id="filterStatusPag"><option value="">Todos</option></select></div>
+            <div class="filter-group"><label>🌆 Cidade</label><select id="filterCidade"><option value="">Todas</option></select></div>
+            <div class="filter-group"><label>✅ Inscrição Ativa</label><select id="filterAtiva"><option value="">Todas</option><option value="SIM">SIM</option><option value="NÃO">NÃO</option></select></div>
+            <div class="filter-group"><label>🔍 Nome / Email</label><input type="text" id="searchText" placeholder="Pesquisar..."></div>
+            <button id="clearFiltersBtn" class="btn-outline">Limpar filtros</button>
+            <button id="clearDataBtn" class="btn-danger">🗑️ Limpar dados desta unidade</button>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+            <div style="font-size: 3rem;">📂</div>
+            <h3>Nenhum lead carregado nesta unidade</h3>
+            <p>Clique em "Anexar Excel" e selecione uma planilha.<br><strong>Merge por telefone:</strong> apenas registros com celular ainda não cadastrado serão adicionados.</p>
+            <button id="uploadEmptyBtn">➕ Selecionar Excel</button>
+        </div>
+
+        <div id="dataContent" style="display: none;">
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr><th>Nome (clique para acompanhar)</th><th>Email</th><th>Celular</th><th>Curso</th><th>Classificação</th><th>Status Pag.</th><th>Cidade/UF</th><th>Último contato</th></tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="chartPanel" class="chart-container">
+            <h3>📈 Métricas dinâmicas</h3>
+            <div class="chart-flex">
+                <div class="chart-box"><canvas id="chartClassificacao"></canvas></div>
+                <div class="chart-box"><canvas id="chartCursosTop"></canvas></div>
+                <div class="chart-box"><canvas id="chartPagamento"></canvas></div>
+            </div>
+        </div>
+        <div class="footer-note">* Clique no nome para registrar contato. ✅ verde = vai matricular | ❌ vermelho = não vai matricular | 🟠 laranja = talvez</div>
+    </div>
+</div>
+
+<!-- Modal de senha -->
+<div id="passwordModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <span id="modalTitle">🔐 Acesso</span>
+            <span id="closePwdModalBtn" style="cursor:pointer;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="pwdUnitName" style="font-weight:bold; margin-bottom:16px;"></div>
+            <div class="modal-field">
+                <label id="pwdLabel">Digite a senha:</label>
+                <input type="password" id="passwordInput" maxlength="20" class="password-input" autocomplete="off">
+            </div>
+            <button id="confirmPwdBtn" class="btn-save">🔓 Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de acompanhamento -->
+<div id="contactModal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <span>📞 Acompanhamento de Lead</span>
+            <span id="closeModalBtn" style="cursor:pointer;">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="modalStudentName" style="font-weight:bold; margin-bottom:16px; background:#eef2fa; padding:8px 16px; border-radius:40px;"></div>
+            <input type="hidden" id="modalStudentIndex">
+
+            <!-- CAMPO EXTRA: Classificação editável -->
+            <div class="modal-field">
+                <label>🏷️ Classificação do lead:</label>
+                <input type="text" id="modalClassificacao" placeholder="Ex.: Atendimento, Aguardando matrícula, Matriculado...">
+            </div>
+            
+            <!-- CAMPO 1: Entrou em contato? -->
+            <div class="modal-field">
+                <label>✅ Entrou em contato?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="contatoRealizado" value="SIM"> SIM</label>
+                    <label><input type="radio" name="contatoRealizado" value="NAO"> NÃO</label>
+                </div>
+            </div>
+
+            <!-- CAMPO 2: Houve retorno? -->
+            <div class="modal-field">
+                <label>🔄 Houve retorno?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="houveRetorno" value="SIM"> SIM</label>
+                    <label><input type="radio" name="houveRetorno" value="NAO"> NÃO</label>
+                </div>
+            </div>
+
+            <!-- CAMPO 3: Até três responsáveis pelo contato -->
+            <div class="modal-field">
+                <label>👥 Quem realizou esse contato? <small style="font-weight:400;color:#6c86a3;">(até 3 pessoas)</small></label>
+                <select id="responsavelContato1">
+                    <option value="">1º responsável</option>
+                    <option value="Coordenação">Coordenação</option>
+                    <option value="QG">QG</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Assistente">Assistente</option>
+                </select>
+                <select id="responsavelContato2" style="margin-top:8px;">
+                    <option value="">2º responsável (opcional)</option>
+                    <option value="Coordenação">Coordenação</option>
+                    <option value="QG">QG</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Assistente">Assistente</option>
+                </select>
+                <select id="responsavelContato3" style="margin-top:8px;">
+                    <option value="">3º responsável (opcional)</option>
+                    <option value="Coordenação">Coordenação</option>
+                    <option value="QG">QG</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Assistente">Assistente</option>
+                </select>
+            </div>
+
+            <!-- CAMPO 4: Vai realizar a matrícula? - COM TALVEZ -->
+            <div class="modal-field">
+                <label>🎓 Vai realizar a matrícula?</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="vaiMatricular" value="SIM"> SIM</label>
+                    <label><input type="radio" name="vaiMatricular" value="NAO"> NÃO</label>
+                    <label><input type="radio" name="vaiMatricular" value="TALVEZ"> TALVEZ</label>
+                </div>
+            </div>
+
+            <!-- CAMPO 5: Nome do contato (aparece se NÃO) -->
+            <div class="modal-field" id="nomeContatoField" style="display:none;">
+                <label>👤 Nome do contato responsável pelo retorno:</label>
+                <input type="text" id="nomeContato" placeholder="Digite o nome da pessoa que retornou o contato">
+            </div>
+
+            <!-- CAMPO 6: Data prevista da matrícula (aparece se SIM) -->
+            <div class="modal-field" id="dataMatriculaField" style="display:none;">
+                <label>📅 Data prevista da matrícula:</label>
+                <input type="date" id="dataMatricula">
+            </div>
+
+            <!-- CAMPO 7: Motivo (aparece se NÃO) -->
+            <div class="modal-field" id="motivoNaoField" style="display:none;">
+                <label>❌ Por que não vai realizar a matrícula?</label>
+                <textarea id="motivoNao" rows="2" placeholder="Descreva o motivo..."></textarea>
+            </div>
+
+            <!-- CAMPO 8: Observação (aparece se TALVEZ) -->
+            <div class="modal-field" id="observacaoTalvezField" style="display:none;">
+                <label>📝 Observação sobre o "talvez":</label>
+                <textarea id="observacaoTalvez" rows="2" placeholder="Descreva o que está pendente para decidir..."></textarea>
+            </div>
+
+            <button id="saveContactBtn" class="btn-save">💾 Salvar acompanhamento</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script>
+    // ---------- FIREBASE REALTIME DATABASE ----------
+    const firebaseConfig = {
+        apiKey: "AIzaSyBdhEd1wH2Hmjxr9GCdu4nyGxx7IT4Newxc",
+        authDomain: "leadvisioncrm.firebaseapp.com",
+        databaseURL: "https://leadvisioncrm-default-rtdb.firebaseio.com",
+        projectId: "leadvisioncrm",
+        storageBucket: "leadvisioncrm.firebasestorage.app",
+        messagingSenderId: "247499998161",
+        appId: "1:247499998161:web:a36a4a4c821c0e4905d6f0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const realtimeDB = firebase.database();
+    let currentUnitRef = null;
+
+    function unitPath(unitName) {
+        return "leadvision_units/" + String(unitName)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9_-]/g, "_")
+            .toLowerCase();
+    }
+
+    // ---------- SENHAS ----------
+    const MASTER_PASSWORD = "130051";
+    const ACTION_PASSWORD = "Xy9#F2";
+    
+    const FIXED_PASSWORDS = {
+        "Petrolina": "aB4dE9",
+        "Arapiraca": "xY7zK2",
+        "Serra Talhada": "mN8pQ3",
+        "Salvador": "rT5uV1",
+        "João Pessoa": "wX6yZ0",
+        "UNIFAEL Curitiba": "cV3bN7",
+        "Juazeiro do Norte": "fG9hJ4",
+        "Vitória da Conquista": "lK2mP8",
+        "Caruaru": "qW1eR5",
+        "Barreiras": "tY6uI0",
+        "UNIFAEL Lapa": "oP4aS9",
+        "Rio de Janeiro": "dF7gH2",
+        "Sobral": "jK8lZ3",
+        "Garanhuns": "zX5cV6",
+        "UNIFAEL Porto Alegre": "bN1mQ7",
+        "UNIFAEL Florianópolis": "eR4tY8",
+        "UNI7": "uI9oP0"
+    };
+    
+    const UNITS = Object.keys(FIXED_PASSWORDS);
+
+    let currentUnit = null;
+    let unitData = {};
+    let masterData = [];
+    let filteredData = [];
+    let acompanhamentos = {};
+    let colMap = {
+        nome: "Nome da Pessoa", email: "Email da Pessoa", celular: "Celular da Pessoa",
+        cidade: "Cidade do Endereço", estado: "Estado", curso: "Curso",
+        classificacao: "Classificação", statusPag: "Transação Status", inscricaoAtiva: "Inscricao Ativa"
+    };
+    let charts = { class: null, curso: null, pag: null };
+
+    // DOM elements
+    const crmContainer = document.getElementById("crmContent");
+    const emptyStateDiv = document.getElementById("emptyState");
+    const dataContentDiv = document.getElementById("dataContent");
+    const statsSpan = document.getElementById("statsInfo");
+    const exportBtn = document.getElementById("exportBtn");
+    const toggleChartBtn = document.getElementById("toggleChartBtn");
+    const chartPanel = document.getElementById("chartPanel");
+    const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+    const clearDataBtn = document.getElementById("clearDataBtn");
+    const filterClass = document.getElementById("filterClassificacao");
+    const filterCurso = document.getElementById("filterCurso");
+    const filterStatus = document.getElementById("filterStatusPag");
+    const filterCidade = document.getElementById("filterCidade");
+    const filterAtiva = document.getElementById("filterAtiva");
+    const searchText = document.getElementById("searchText");
+    const modal = document.getElementById("contactModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const saveContactBtn = document.getElementById("saveContactBtn");
+    const modalStudentNameSpan = document.getElementById("modalStudentName");
+    const modalStudentIndex = document.getElementById("modalStudentIndex");
+    const modalClassificacaoInput = document.getElementById("modalClassificacao");
+    const tableBody = document.getElementById("tableBody");
+    const dataTable = document.getElementById("dataTable");
+
+    const passwordModal = document.getElementById("passwordModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const pwdUnitNameSpan = document.getElementById("pwdUnitName");
+    const pwdLabel = document.getElementById("pwdLabel");
+    const passwordInput = document.getElementById("passwordInput");
+    const confirmPwdBtn = document.getElementById("confirmPwdBtn");
+    const closePwdModalBtn = document.getElementById("closePwdModalBtn");
+    let pendingCallback = null;
+
+    function showNotification(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notify';
+        toast.style.backgroundColor = isError ? '#b33' : '#1e4663';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { if(toast.parentNode) toast.remove(); }, 3000);
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    function persistCurrentUnit() {
+        if (!currentUnit) return;
+        const payload = {
+            masterData,
+            acompanhamentos,
+            colMap,
+            unidade: currentUnit,
+            atualizadoEm: new Date().toISOString()
+        };
+        unitData[currentUnit] = payload;
+        return realtimeDB.ref(unitPath(currentUnit)).set(payload)
+            .catch(err => {
+                console.error(err);
+                showNotification("Erro ao salvar na nuvem: " + err.message, true);
+            });
+    }
+
+    function renderCurrentUnitState() {
+        updateFilterOptions();
+        applyFilters();
+        if (masterData.length === 0) {
+            emptyStateDiv.style.display = "block";
+            dataContentDiv.style.display = "none";
+        } else {
+            emptyStateDiv.style.display = "none";
+            dataContentDiv.style.display = "block";
+        }
+        chartPanel.style.display = "none";
+        toggleChartBtn.textContent = "📊 Mostrar Gráficos";
+        if (charts.class) { charts.class.destroy(); charts.class = null; }
+        if (charts.curso) { charts.curso.destroy(); charts.curso = null; }
+        if (charts.pag) { charts.pag.destroy(); charts.pag = null; }
+        statsSpan.innerHTML = `☁️ Nuvem ativa | Exibindo ${filteredData.length} leads | Total base: ${masterData.length}`;
+        crmContainer.style.display = "block";
+    }
+
+    function loadUnitData(unitName) {
+        currentUnit = unitName;
+
+        if (currentUnitRef) {
+            currentUnitRef.off();
+        }
+
+        document.querySelectorAll('.unit-btn').forEach(btn => {
+            if (btn.getAttribute('data-unit') === unitName) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        statsSpan.innerHTML = "☁️ Carregando dados da nuvem...";
+        crmContainer.style.display = "block";
+
+        currentUnitRef = realtimeDB.ref(unitPath(unitName));
+        currentUnitRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+
+            if (data) {
+                masterData = data.masterData || [];
+                acompanhamentos = data.acompanhamentos || {};
+                colMap = data.colMap || {
+                    nome: "Nome da Pessoa", email: "Email da Pessoa", celular: "Celular da Pessoa",
+                    cidade: "Cidade do Endereço", estado: "Estado", curso: "Curso",
+                    classificacao: "Classificação", statusPag: "Transação Status", inscricaoAtiva: "Inscricao Ativa"
+                };
+                unitData[unitName] = data;
+            } else {
+                masterData = [];
+                acompanhamentos = {};
+                colMap = {
+                    nome: "Nome da Pessoa", email: "Email da Pessoa", celular: "Celular da Pessoa",
+                    cidade: "Cidade do Endereço", estado: "Estado", curso: "Curso",
+                    classificacao: "Classificação", statusPag: "Transação Status", inscricaoAtiva: "Inscricao Ativa"
+                };
+                unitData[unitName] = { masterData: [], acompanhamentos: {}, colMap, unidade: unitName };
+                currentUnitRef.set(unitData[unitName]);
+            }
+
+            renderCurrentUnitState();
+        }, (error) => {
+            console.error(error);
+            showNotification("Erro ao carregar dados da nuvem: " + error.message, true);
+        });
+    }
+
+    function requestUnitPassword(unitName, onSuccess) {
+        const correctPassword = FIXED_PASSWORDS[unitName];
+        modalTitle.innerText = "🔐 Acesso à unidade";
+        pwdLabel.innerText = "Digite a senha da unidade:";
+        pwdUnitNameSpan.innerText = `Unidade: ${unitName}`;
+        passwordInput.value = "";
+        passwordModal.classList.add("active");
+        passwordInput.focus();
+        pendingCallback = () => {
+            const typed = passwordInput.value.trim();
+            if (typed === correctPassword || typed === MASTER_PASSWORD) {
+                passwordModal.classList.remove("active");
+                onSuccess();
+            } else {
+                showNotification("Senha incorreta!", true);
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        };
+    }
+
+    function requestActionPassword(actionName, onSuccess) {
+        modalTitle.innerText = `⚠️ Autorizar ação: ${actionName}`;
+        pwdLabel.innerText = "Digite a senha de autorização:";
+        pwdUnitNameSpan.innerText = "Ação requer autorização especial";
+        passwordInput.value = "";
+        passwordModal.classList.add("active");
+        passwordInput.focus();
+        pendingCallback = () => {
+            const typed = passwordInput.value.trim();
+            if (typed === ACTION_PASSWORD) {
+                passwordModal.classList.remove("active");
+                onSuccess();
+            } else {
+                showNotification("Senha de autorização incorreta!", true);
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        };
+    }
+
+    function clearCurrentUnitData() {
+        if (!currentUnit) return;
+        requestActionPassword("limpar dados", () => {
+            masterData = [];
+            acompanhamentos = {};
+            unitData[currentUnit] = { masterData: [], acompanhamentos: {}, colMap };
+            persistCurrentUnit();
+            updateFilterOptions();
+            applyFilters();
+            emptyStateDiv.style.display = "block";
+            dataContentDiv.style.display = "none";
+            chartPanel.style.display = "none";
+            toggleChartBtn.textContent = "📊 Mostrar Gráficos";
+            if (charts.class) { charts.class.destroy(); charts.class = null; }
+            if (charts.curso) { charts.curso.destroy(); charts.curso = null; }
+            if (charts.pag) { charts.pag.destroy(); charts.pag = null; }
+            statsSpan.innerHTML = `📌 Exibindo 0 leads | Total base: 0`;
+            showNotification("Todos os dados desta unidade foram removidos com sucesso.");
+        });
+    }
+
+    function getLeadKey(row, idxFallback) {
+        const email = (row[colMap.email] || "").trim().toLowerCase();
+        if(email) return email;
+        const phone = (row[colMap.celular] || "").trim();
+        if(phone) return `phone_${phone}`;
+        return `fallback_${idxFallback}`;
+    }
+
+    function updateFilterOptions() {
+        if(!masterData.length) {
+            filterClass.innerHTML = '<option value="">Todas</option>';
+            filterCurso.innerHTML = '<option value="">Todos os cursos</option>';
+            filterStatus.innerHTML = '<option value="">Todos</option>';
+            filterCidade.innerHTML = '<option value="">Todas</option>';
+            return;
+        }
+        const classSet = new Set(), cursoSet = new Set(), statusSet = new Set(), cidadeSet = new Set();
+        masterData.forEach(row => {
+            let c = row[colMap.classificacao] || ""; if(c) classSet.add(c);
+            let cr = row[colMap.curso] || ""; if(cr) cursoSet.add(cr);
+            let st = row[colMap.statusPag] || ""; if(st) statusSet.add(st);
+            let cid = row[colMap.cidade] || ""; if(cid) cidadeSet.add(cid);
+        });
+        const oldClass = filterClass.value, oldCurso = filterCurso.value, oldStatus = filterStatus.value, oldCidade = filterCidade.value;
+        filterClass.innerHTML = '<option value="">Todas</option>' + Array.from(classSet).sort().map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        filterCurso.innerHTML = '<option value="">Todos os cursos</option>' + Array.from(cursoSet).sort().map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        filterStatus.innerHTML = '<option value="">Todos</option>' + Array.from(statusSet).sort().map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        filterCidade.innerHTML = '<option value="">Todas</option>' + Array.from(cidadeSet).sort().map(v=>`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+        if(oldClass && classSet.has(oldClass)) filterClass.value = oldClass;
+        if(oldCurso && cursoSet.has(oldCurso)) filterCurso.value = oldCurso;
+        if(oldStatus && statusSet.has(oldStatus)) filterStatus.value = oldStatus;
+        if(oldCidade && cidadeSet.has(oldCidade)) filterCidade.value = oldCidade;
+    }
+
+    function applyFilters() {
+        if(!masterData.length) { filteredData = []; renderTable(); updateStats(); return; }
+        const classVal = filterClass.value, cursoVal = filterCurso.value, statusVal = filterStatus.value, cidadeVal = filterCidade.value, ativaVal = filterAtiva.value, searchTerm = searchText.value.toLowerCase();
+        filteredData = masterData.filter(row => {
+            let classif = row[colMap.classificacao] || "";
+            let curso = row[colMap.curso] || "";
+            let status = row[colMap.statusPag] || "";
+            let cidade = row[colMap.cidade] || "";
+            let ativa = (row[colMap.inscricaoAtiva] || "").toUpperCase();
+            let nome = (row[colMap.nome] || "").toLowerCase();
+            let email = (row[colMap.email] || "").toLowerCase();
+            if(classVal && classif !== classVal) return false;
+            if(cursoVal && curso !== cursoVal) return false;
+            if(statusVal && status !== statusVal) return false;
+            if(cidadeVal && cidade !== cidadeVal) return false;
+            if(ativaVal && ativa !== ativaVal.toUpperCase()) return false;
+            if(searchTerm && !(nome.includes(searchTerm) || email.includes(searchTerm))) return false;
+            return true;
+        });
+        renderTable();
+        updateStats();
+        if(chartPanel.style.display === "block") renderCharts();
+    }
+
+    function updateStats() {
+        statsSpan.innerHTML = `📌 Exibindo ${filteredData.length} leads | Total base: ${masterData.length}`;
+    }
+
+    function getResponsaveisTexto(data) {
+        if (!data) return "?";
+        if (Array.isArray(data.responsaveis) && data.responsaveis.length) {
+            return data.responsaveis.filter(Boolean).map(escapeHtml).join(" | ");
+        }
+        const lista = [data.responsavel1, data.responsavel2, data.responsavel3].filter(Boolean);
+        if (lista.length) return lista.map(escapeHtml).join(" | ");
+        return data.responsavel ? escapeHtml(data.responsavel) : "?";
+    }
+
+    function getLastContactSummary(row, idx) {
+        const key = getLeadKey(row, idx);
+        const data = acompanhamentos[key];
+        if (data && data.contatoRealizado === "SIM") {
+            const responsavel = getResponsaveisTexto(data);
+            const dataReg = data.dataRegistro ? data.dataRegistro : "data não registrada";
+            let matriculaIcon = '';
+            if (data.vaiMatricular === "SIM") {
+                matriculaIcon = '<span class="indicator-sim">✅</span>';
+                return `${matriculaIcon} ${responsavel} (${dataReg})`;
+            } else if (data.vaiMatricular === "NAO") {
+                matriculaIcon = '<span class="indicator-nao">❌</span>';
+                return `${matriculaIcon} ${responsavel} (${dataReg})`;
+            } else if (data.vaiMatricular === "TALVEZ") {
+                matriculaIcon = '<span class="indicator-talvez">🟠</span>';
+                return `${matriculaIcon} ${responsavel} (${dataReg})`;
+            } else {
+                return `✅ ${responsavel} (${dataReg})`;
+            }
+        } else if (data && data.contatoRealizado === "NAO") {
+            return `⏳ Sem contato efetivo`;
+        }
+        return "📞 Pendente";
+    }
+
+    function renderTable() {
+        if(!filteredData.length) { 
+            tableBody.innerHTML = '<tr><td colspan="8">Nenhum registro encontrado</td></tr>'; 
+            return; 
+        }
+        tableBody.innerHTML = filteredData.map((row, i) => {
+            const originalIdx = masterData.findIndex(r => r === row);
+            const nome = row[colMap.nome] || "Anônimo";
+            const email = row[colMap.email] || "-";
+            const celular = row[colMap.celular] || "-";
+            const curso = row[colMap.curso] || "-";
+            const classif = row[colMap.classificacao] || "-";
+            const statusPg = row[colMap.statusPag] || "-";
+            const cidade = row[colMap.cidade] || "-";
+            const estado = row[colMap.estado] || "";
+            const summary = getLastContactSummary(row, originalIdx);
+            return `
+                <tr>
+                    <td class="clickable-name" data-idx="${originalIdx}">${escapeHtml(nome)}</td>
+                    <td>${escapeHtml(email)}</td>
+                    <td>${escapeHtml(celular)}</td>
+                    <td>${escapeHtml(curso)}</td>
+                    <td><span class="contact-badge">${escapeHtml(classif)}</span></td>
+                    <td>${escapeHtml(statusPg)}</td>
+                    <td>${escapeHtml(cidade)}/${escapeHtml(estado)}</td>
+                    <td>${summary}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        // ADICIONAR EVENTOS DE CLIQUE DIRETAMENTE NOS ELEMENTOS
+        document.querySelectorAll('.clickable-name').forEach(el => {
+            el.addEventListener('click', function(e) {
+                const idx = parseInt(this.getAttribute('data-idx'));
+                if(!isNaN(idx)) {
+                    openModalForRow(idx);
+                }
+            });
+        });
+    }
+
+    // Função para abrir o modal
+    function openModalForRow(masterIndex) {
+        if(masterIndex < 0 || masterIndex >= masterData.length) {
+            showNotification("Índice do lead inválido!", true);
+            return;
+        }
+        const row = masterData[masterIndex];
+        const nome = row[colMap.nome] || "Lead";
+        modalStudentNameSpan.innerText = `📌 ${nome}`;
+        modalStudentIndex.value = masterIndex;
+        modalClassificacaoInput.value = row[colMap.classificacao] || "";
+        const key = getLeadKey(row, masterIndex);
+        const saved = acompanhamentos[key] || {};
+        
+        // Carregar valores salvos
+        document.querySelectorAll('input[name="contatoRealizado"]').forEach(r => r.checked = (r.value === (saved.contatoRealizado || '')));
+        document.querySelectorAll('input[name="houveRetorno"]').forEach(r => r.checked = (r.value === (saved.houveRetorno || '')));
+        const responsaveisSalvos = Array.isArray(saved.responsaveis)
+            ? saved.responsaveis
+            : [saved.responsavel || "", saved.responsavel2 || "", saved.responsavel3 || ""];
+        document.getElementById("responsavelContato1").value = responsaveisSalvos[0] || "";
+        document.getElementById("responsavelContato2").value = responsaveisSalvos[1] || "";
+        document.getElementById("responsavelContato3").value = responsaveisSalvos[2] || "";
+        document.querySelectorAll('input[name="vaiMatricular"]').forEach(r => r.checked = (r.value === (saved.vaiMatricular || '')));
+        document.getElementById("dataMatricula").value = saved.dataMatricula || "";
+        document.getElementById("motivoNao").value = saved.motivoNao || "";
+        document.getElementById("nomeContato").value = saved.nomeContato || "";
+        document.getElementById("observacaoTalvez").value = saved.observacaoTalvez || "";
+        
+        // Mostrar/esconder campos condicionais
+        atualizarCamposCondicionais();
+        
+        modal.classList.add("active");
+    }
+
+    // Funções para controle dos campos condicionais
+    // Correção: antes essas funções chamavam umas às outras e geravam loop infinito,
+    // impedindo o modal de abrir ao clicar no nome.
+    function getVaiMatricularSelecionado() {
+        const selected = document.querySelector('input[name="vaiMatricular"]:checked');
+        return selected ? selected.value : "";
+    }
+
+    function toggleNomeContatoField() {
+        const valor = getVaiMatricularSelecionado();
+        document.getElementById("nomeContatoField").style.display = (valor === "NAO") ? "block" : "none";
+    }
+
+    function toggleMatriculaFields() {
+        const valor = getVaiMatricularSelecionado();
+        document.getElementById("dataMatriculaField").style.display = (valor === "SIM") ? "block" : "none";
+    }
+
+    function toggleMotivoField() {
+        const valor = getVaiMatricularSelecionado();
+        document.getElementById("motivoNaoField").style.display = (valor === "NAO") ? "block" : "none";
+    }
+
+    function toggleObservacaoTalvezField() {
+        const valor = getVaiMatricularSelecionado();
+        document.getElementById("observacaoTalvezField").style.display = (valor === "TALVEZ") ? "block" : "none";
+    }
+
+    function atualizarCamposCondicionais() {
+        toggleMatriculaFields();
+        toggleMotivoField();
+        toggleNomeContatoField();
+        toggleObservacaoTalvezField();
+    }
+
+    // Função para salvar
+    function saveContact() {
+        const masterIdx = parseInt(modalStudentIndex.value);
+        if(isNaN(masterIdx) || masterIdx < 0 || masterIdx >= masterData.length) {
+            showNotification("Erro ao salvar: lead não encontrado!", true);
+            return;
+        }
+        const row = masterData[masterIdx];
+        const key = getLeadKey(row, masterIdx);
+        
+        const contatoRealizado = document.querySelector('input[name="contatoRealizado"]:checked')?.value || "";
+        const houveRetorno = document.querySelector('input[name="houveRetorno"]:checked')?.value || "";
+        const responsavel1 = document.getElementById("responsavelContato1").value;
+        const responsavel2 = document.getElementById("responsavelContato2").value;
+        const responsavel3 = document.getElementById("responsavelContato3").value;
+        const responsaveis = [responsavel1, responsavel2, responsavel3].filter(Boolean);
+        const responsavel = responsaveis.length ? responsaveis.join(" | ") : "";
+        const vaiMatricular = document.querySelector('input[name="vaiMatricular"]:checked')?.value || "";
+        const dataMatricula = document.getElementById("dataMatricula").value;
+        const motivoNao = document.getElementById("motivoNao").value;
+        const nomeContato = document.getElementById("nomeContato").value;
+        const observacaoTalvez = document.getElementById("observacaoTalvez").value;
+        const novaClassificacao = modalClassificacaoInput.value.trim();
+
+        // Atualiza a classificação diretamente na base principal do lead
+        if (novaClassificacao) {
+            masterData[masterIdx][colMap.classificacao] = novaClassificacao;
+        }
+        
+        acompanhamentos[key] = {
+            contatoRealizado,
+            houveRetorno,
+            responsavel,
+            responsavel1,
+            responsavel2,
+            responsavel3,
+            responsaveis,
+            vaiMatricular,
+            dataMatricula: vaiMatricular === "SIM" ? dataMatricula : "",
+            motivoNao: vaiMatricular === "NAO" ? motivoNao : "",
+            nomeContato: vaiMatricular === "NAO" ? nomeContato : "",
+            observacaoTalvez: vaiMatricular === "TALVEZ" ? observacaoTalvez : "",
+            dataRegistro: new Date().toLocaleString()
+        };
+        persistCurrentUnit();
+        updateFilterOptions();
+        modal.classList.remove("active");
+        applyFilters();
+        showNotification("Acompanhamento e classificação salvos com sucesso!");
+    }
+
+    function renderCharts() {
+        if(!filteredData.length) { if(charts.class) charts.class.destroy(); return; }
+        const classCount = {}; filteredData.forEach(r=>{ let c=r[colMap.classificacao]||"Indefinido"; classCount[c]=(classCount[c]||0)+1; });
+        if(charts.class) charts.class.destroy();
+        charts.class = new Chart(document.getElementById('chartClassificacao'), { type:'pie', data:{ labels:Object.keys(classCount), datasets:[{ data:Object.values(classCount), backgroundColor:['#2c7da0','#61a5c2','#89c2d9','#a9d6e5'] }] } });
+        const courseCount={}; filteredData.forEach(r=>{ let cr=r[colMap.curso]||"Outros"; courseCount[cr]=(courseCount[cr]||0)+1; });
+        let sorted=Object.entries(courseCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+        if(charts.curso) charts.curso.destroy();
+        charts.curso = new Chart(document.getElementById('chartCursosTop'), { type:'bar', data:{ labels:sorted.map(v=>v[0]), datasets:[{ label:'Inscrições', data:sorted.map(v=>v[1]), backgroundColor:'#3b8db0' }] } });
+        const pagCount={}; filteredData.forEach(r=>{ let p=r[colMap.statusPag]||"Pendente"; pagCount[p]=(pagCount[p]||0)+1; });
+        if(charts.pag) charts.pag.destroy();
+        charts.pag = new Chart(document.getElementById('chartPagamento'), { type:'doughnut', data:{ labels:Object.keys(pagCount), datasets:[{ data:Object.values(pagCount), backgroundColor:['#2c6e49','#d68c45'] }] } });
+    }
+
+    function mergeNewLeads(newRows) {
+        if (!newRows.length) return 0;
+        const existingPhones = new Set();
+        masterData.forEach(row => {
+            const phone = (row[colMap.celular] || "").trim();
+            if (phone) existingPhones.add(phone);
+        });
+        let addedCount = 0;
+        for (let row of newRows) {
+            const phone = (row[colMap.celular] || "").trim();
+            let isDuplicate = false;
+            if (phone && existingPhones.has(phone)) isDuplicate = true;
+            if (!isDuplicate) {
+                masterData.push(row);
+                if (phone) existingPhones.add(phone);
+                addedCount++;
+            }
+        }
+        return addedCount;
+    }
+
+    function processExcelWithMerge(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                if(!json.length) { showNotification("A planilha está vazia!", true); return; }
+                
+                const keys = Object.keys(json[0]);
+                const findKey = (names) => { for(let n of names) { let found = keys.find(k=>k.toLowerCase().trim()===n.toLowerCase().trim()); if(found) return found; } return names[0]; };
+                const newColMap = {
+                    nome: findKey(["Nome da Pessoa","Nome"]),
+                    email: findKey(["Email da Pessoa","Email","E-mail"]),
+                    celular: findKey(["Celular da Pessoa","Celular","Telefone"]),
+                    cidade: findKey(["Cidade do Endereço","Cidade"]),
+                    estado: findKey(["Estado","UF"]),
+                    curso: findKey(["Curso"]),
+                    classificacao: findKey(["Classificação"]),
+                    statusPag: findKey(["Transação Status","Status Pagamento"]),
+                    inscricaoAtiva: findKey(["Inscricao Ativa","Inscrição Ativa"])
+                };
+                colMap = newColMap;
+                
+                const added = mergeNewLeads(json);
+                if(added === 0 && masterData.length > 0) {
+                    showNotification("Nenhum novo lead adicionado. Todos os telefones já existem na base.", false);
+                } else if(added > 0) {
+                    showNotification(`✅ ${added} novo(s) lead(s) adicionado(s) com sucesso! (baseado no telefone)`, false);
+                } else if(masterData.length === 0 && added === json.length) {
+                    showNotification(`Base iniciada com ${added} registros.`, false);
+                } else if(added === 0 && masterData.length === 0){
+                    showNotification("Erro: nenhum dado foi carregado. Verifique o formato da planilha.", true);
+                }
+                
+                updateFilterOptions();
+                filterClass.value = ""; filterCurso.value = ""; filterStatus.value = ""; filterCidade.value = ""; filterAtiva.value = ""; searchText.value = "";
+                applyFilters();
+                if (masterData.length > 0) {
+                    emptyStateDiv.style.display = "none";
+                    dataContentDiv.style.display = "block";
+                } else {
+                    emptyStateDiv.style.display = "block";
+                    dataContentDiv.style.display = "none";
+                }
+                persistCurrentUnit();
+                if(chartPanel.style.display === "block") renderCharts();
+            } catch(err) {
+                console.error(err);
+                showNotification("Erro ao processar o arquivo: " + err.message, true);
+            }
+        };
+        reader.onerror = () => showNotification("Erro na leitura do arquivo.", true);
+        reader.readAsArrayBuffer(file);
+    }
+
+    function exportWithFollowups() {
+        if(!filteredData.length) { alert("Sem dados para exportar"); return; }
+        const exportRows = filteredData.map(row => {
+            const idx = masterData.findIndex(r=>r===row);
+            const key = getLeadKey(row, idx);
+            const a = acompanhamentos[key] || {};
+            return {
+                "Nome": row[colMap.nome]||"",
+                "Email": row[colMap.email]||"",
+                "Celular": row[colMap.celular]||"",
+                "Curso": row[colMap.curso]||"",
+                "Classificação": row[colMap.classificacao]||"",
+                "Status Pagamento": row[colMap.statusPag]||"",
+                "Cidade": row[colMap.cidade]||"",
+                "Contato Realizado": a.contatoRealizado || "",
+                "Houve Retorno": a.houveRetorno || "",
+                "Responsável 1": a.responsavel1 || (Array.isArray(a.responsaveis) ? (a.responsaveis[0] || "") : (a.responsavel || "")),
+                "Responsável 2": a.responsavel2 || (Array.isArray(a.responsaveis) ? (a.responsaveis[1] || "") : ""),
+                "Responsável 3": a.responsavel3 || (Array.isArray(a.responsaveis) ? (a.responsaveis[2] || "") : ""),
+                "Responsáveis Consolidados": Array.isArray(a.responsaveis) ? a.responsaveis.join(" | ") : (a.responsavel || ""),
+                "Vai Matricular": a.vaiMatricular || "",
+                "Data Prevista Matrícula": a.dataMatricula || "",
+                "Motivo Não Matrícula": a.motivoNao || "",
+                "Nome Contato": a.nomeContato || "",
+                "Observação Talvez": a.observacaoTalvez || "",
+                "Data Registro": a.dataRegistro || ""
+            };
+        });
+        const ws = XLSX.utils.json_to_sheet(exportRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Leads_Acompanhamento");
+        XLSX.writeFile(wb, `leads_${currentUnit.replace(/\s/g, "_")}_${new Date().toISOString().slice(0,19)}.xlsx`);
+    }
+
+    function initUnitsBar() {
+        const grid = document.getElementById("unitsGrid");
+        grid.innerHTML = "";
+        UNITS.forEach(unit => {
+            const btn = document.createElement("button");
+            btn.className = "unit-btn";
+            btn.textContent = unit;
+            btn.setAttribute("data-unit", unit);
+            btn.addEventListener("click", () => {
+                requestUnitPassword(unit, () => loadUnitData(unit));
+            });
+            grid.appendChild(btn);
+        });
+        crmContainer.style.display = "none";
+    }
+
+    // Event Listeners
+    document.getElementById("uploadBtn").addEventListener("click", () => {
+        requestActionPassword("importar Excel", () => document.getElementById("fileInput").click());
+    });
+    document.getElementById("uploadEmptyBtn").addEventListener("click", () => {
+        requestActionPassword("importar Excel", () => document.getElementById("fileInput").click());
+    });
+    document.getElementById("fileInput").addEventListener("change", (e) => { 
+        if(e.target.files.length) processExcelWithMerge(e.target.files[0]); 
+        e.target.value = ''; 
+    });
+    exportBtn.addEventListener("click", () => {
+        requestActionPassword("exportar dados", () => exportWithFollowups());
+    });
+    toggleChartBtn.addEventListener("click", () => {
+        requestActionPassword("mostrar/ocultar gráficos", () => {
+            if(chartPanel.style.display === "none"){ 
+                chartPanel.style.display = "block"; 
+                renderCharts(); 
+            } else { 
+                chartPanel.style.display = "none"; 
+            }
+        });
+    });
+    clearFiltersBtn.addEventListener("click", () => { 
+        filterClass.value = ""; filterCurso.value = ""; filterStatus.value = ""; 
+        filterCidade.value = ""; filterAtiva.value = ""; searchText.value = ""; 
+        applyFilters(); 
+    });
+    clearDataBtn.addEventListener("click", clearCurrentUnitData);
+    
+    [filterClass, filterCurso, filterStatus, filterCidade, filterAtiva].forEach(el => el.addEventListener("change", () => applyFilters()));
+    searchText.addEventListener("keyup", () => applyFilters());
+    closeModalBtn.addEventListener("click", () => modal.classList.remove("active"));
+    modal.addEventListener("click", (e) => { if(e.target === modal) modal.classList.remove("active"); });
+    
+    document.querySelectorAll('input[name="vaiMatricular"]').forEach(r => r.addEventListener("change", atualizarCamposCondicionais));
+    
+    saveContactBtn.addEventListener("click", saveContact);
+    
+    confirmPwdBtn.addEventListener("click", () => { if (pendingCallback) pendingCallback(); });
+    closePwdModalBtn.addEventListener("click", () => { passwordModal.classList.remove("active"); pendingCallback = null; });
+    passwordInput.addEventListener("keypress", (e) => { if (e.key === "Enter") { e.preventDefault(); if (pendingCallback) pendingCallback(); } });
+    passwordModal.addEventListener("click", (e) => { if (e.target === passwordModal) { passwordModal.classList.remove("active"); pendingCallback = null; } });
+
+    initUnitsBar();
+</script>
+</body>
+</html>
