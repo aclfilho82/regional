@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -338,8 +339,37 @@
         .modal-body {
             padding: 24px;
             overflow-y: auto;
-            max-height: calc(90vh - 72px);
+            max-height: calc(90vh - 150px);
             scroll-behavior: smooth;
+        }
+        .modal-footer {
+            background: white;
+            padding: 14px 24px 20px;
+            border-top: 1px solid #eef2f8;
+            box-shadow: 0 -8px 18px rgba(255,255,255,0.95);
+        }
+        .contact-entry {
+            background: #f8fbff;
+            border: 1px solid #dbe7f3;
+            border-radius: 22px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        .contact-entry-title {
+            font-weight: 700;
+            color: #1e4663;
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+        }
+        .contact-entry label {
+            margin-top: 8px;
+            margin-bottom: 5px;
+            color: #2c4c6e;
+            font-size: 0.75rem;
+        }
+        .contact-entry select,
+        .contact-entry input {
+            width: 100%;
         }
         .modal-field {
             margin-bottom: 20px;
@@ -375,13 +405,8 @@
         .btn-save {
             background: #2c6e49;
             width: 100%;
-            margin-top: 12px;
             justify-content: center;
-            position: sticky;
-            bottom: 0;
-            z-index: 10;
             padding: 13px 18px;
-            box-shadow: 0 -8px 18px rgba(255,255,255,0.95);
         }
         .toast-notify {
             position: fixed;
@@ -606,30 +631,51 @@
                 </div>
             </div>
 
-            <!-- CAMPO 3: Até três responsáveis pelo contato -->
+            <!-- CAMPO 3: Até três responsáveis pelo contato, cada um com data e horário -->
             <div class="modal-field">
-                <label>👥 Quem realizou esse contato? <small style="font-weight:400;color:#6c86a3;">(até 3 pessoas)</small></label>
-                <select id="responsavelContato1">
-                    <option value="">1º responsável</option>
-                    <option value="Coordenação">Coordenação</option>
-                    <option value="QG">QG</option>
-                    <option value="Comercial">Comercial</option>
-                    <option value="Assistente">Assistente</option>
-                </select>
-                <select id="responsavelContato2" style="margin-top:8px;">
-                    <option value="">2º responsável (opcional)</option>
-                    <option value="Coordenação">Coordenação</option>
-                    <option value="QG">QG</option>
-                    <option value="Comercial">Comercial</option>
-                    <option value="Assistente">Assistente</option>
-                </select>
-                <select id="responsavelContato3" style="margin-top:8px;">
-                    <option value="">3º responsável (opcional)</option>
-                    <option value="Coordenação">Coordenação</option>
-                    <option value="QG">QG</option>
-                    <option value="Comercial">Comercial</option>
-                    <option value="Assistente">Assistente</option>
-                </select>
+                <label>👥 Quem realizou esse contato? <small style="font-weight:400;color:#6c86a3;">(até 3 contatos registrados)</small></label>
+
+                <div class="contact-entry">
+                    <div class="contact-entry-title">1º contato</div>
+                    <label>Responsável:</label>
+                    <select id="responsavelContato1">
+                        <option value="">1º responsável</option>
+                        <option value="Coordenação">Coordenação</option>
+                        <option value="QG">QG</option>
+                        <option value="Comercial">Comercial</option>
+                        <option value="Assistente">Assistente</option>
+                    </select>
+                    <label>📅 Data e horário do 1º contato:</label>
+                    <input type="datetime-local" id="dataHoraContato1">
+                </div>
+
+                <div class="contact-entry">
+                    <div class="contact-entry-title">2º contato</div>
+                    <label>Responsável:</label>
+                    <select id="responsavelContato2">
+                        <option value="">2º responsável (opcional)</option>
+                        <option value="Coordenação">Coordenação</option>
+                        <option value="QG">QG</option>
+                        <option value="Comercial">Comercial</option>
+                        <option value="Assistente">Assistente</option>
+                    </select>
+                    <label>📅 Data e horário do 2º contato:</label>
+                    <input type="datetime-local" id="dataHoraContato2">
+                </div>
+
+                <div class="contact-entry">
+                    <div class="contact-entry-title">3º contato</div>
+                    <label>Responsável:</label>
+                    <select id="responsavelContato3">
+                        <option value="">3º responsável (opcional)</option>
+                        <option value="Coordenação">Coordenação</option>
+                        <option value="QG">QG</option>
+                        <option value="Comercial">Comercial</option>
+                        <option value="Assistente">Assistente</option>
+                    </select>
+                    <label>📅 Data e horário do 3º contato:</label>
+                    <input type="datetime-local" id="dataHoraContato3">
+                </div>
             </div>
 
             <!-- CAMPO 4: Vai realizar a matrícula? - COM TALVEZ -->
@@ -666,6 +712,8 @@
                 <textarea id="observacaoTalvez" rows="2" placeholder="Descreva o que está pendente para decidir..."></textarea>
             </div>
 
+        </div>
+        <div class="modal-footer">
             <button id="saveContactBtn" class="btn-save">💾 Salvar acompanhamento</button>
         </div>
     </div>
@@ -780,21 +828,87 @@
 
     function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
+    function getLocalDateTimeValue(date = new Date()) {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 16);
+    }
+
+    function formatDateTimeBR(value) {
+        if (!value) return "data não registrada";
+        if (String(value).includes("T")) {
+            const [data, hora] = String(value).split("T");
+            const [ano, mes, dia] = data.split("-");
+            return `${dia}/${mes}/${ano} ${hora}`;
+        }
+        return value;
+    }
+
+    function sanitizeObjectKey(key) {
+        // O Realtime Database não aceita . # $ / [ ] nos nomes dos campos.
+        // Algumas planilhas podem trazer cabeçalhos com esses caracteres.
+        return String(key || "")
+            .replace(/[.#$/\[\]]/g, "_")
+            .replace(/\u0000/g, "");
+    }
+
+    function sanitizeRowForFirebase(row) {
+        const clean = {};
+        Object.keys(row || {}).forEach(originalKey => {
+            const safeKey = sanitizeObjectKey(originalKey);
+            const value = row[originalKey];
+            clean[safeKey] = value === undefined ? "" : value;
+        });
+        return clean;
+    }
+
+    function sanitizeColMapForFirebase(map) {
+        const clean = {};
+        Object.keys(map || {}).forEach(k => {
+            clean[k] = sanitizeObjectKey(map[k]);
+        });
+        return clean;
+    }
+
+    function cleanFirebaseValue(value) {
+        if (value === undefined) return "";
+        if (value === null) return null;
+        if (typeof value !== "object") return value;
+        if (Array.isArray(value)) return value.map(cleanFirebaseValue);
+        const clean = {};
+        Object.keys(value).forEach(k => {
+            clean[sanitizeObjectKey(k)] = cleanFirebaseValue(value[k]);
+        });
+        return clean;
+    }
+
     function persistCurrentUnit() {
-        if (!currentUnit) return;
-        const payload = {
-            masterData,
-            acompanhamentos,
-            colMap,
-            unidade: currentUnit,
-            atualizadoEm: new Date().toISOString()
-        };
-        unitData[currentUnit] = payload;
-        return realtimeDB.ref(unitPath(currentUnit)).set(payload)
-            .catch(err => {
-                console.error(err);
-                showNotification("Erro ao salvar na nuvem: " + err.message, true);
-            });
+        if (!currentUnit) return Promise.resolve();
+
+        try {
+            const firebaseColMap = sanitizeColMapForFirebase(colMap);
+            const firebaseMasterData = (masterData || []).map(sanitizeRowForFirebase);
+
+            const payload = {
+                masterData: firebaseMasterData,
+                acompanhamentos: cleanFirebaseValue(acompanhamentos || {}),
+                colMap: firebaseColMap,
+                unidade: currentUnit,
+                atualizadoEm: new Date().toISOString()
+            };
+
+            unitData[currentUnit] = payload;
+
+            return realtimeDB.ref(unitPath(currentUnit)).set(payload)
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Erro ao salvar na nuvem: " + err.message, true);
+                    throw err;
+                });
+        } catch (err) {
+            console.error(err);
+            showNotification("Erro ao preparar os dados para salvar: " + err.message, true);
+            return Promise.reject(err);
+        }
     }
 
     function renderCurrentUnitState() {
@@ -925,10 +1039,24 @@
         });
     }
 
+    function sanitizeFirebaseKey(value) {
+        // O Realtime Database não permite . # $ / [ ] em nomes de chaves.
+        // Como e-mails possuem ponto, sem esta limpeza o botão Salvar pode falhar.
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[.#$/\[\]]/g, "_")
+            .replace(/[^a-z0-9_-]/g, "_")
+            .replace(/_+/g, "_")
+            .replace(/^_+|_+$/g, "");
+    }
+
     function getLeadKey(row, idxFallback) {
-        const email = (row[colMap.email] || "").trim().toLowerCase();
-        if(email) return email;
-        const phone = (row[colMap.celular] || "").trim();
+        const email = sanitizeFirebaseKey(row[colMap.email]);
+        if(email) return `email_${email}`;
+        const phone = sanitizeFirebaseKey(row[colMap.celular]);
         if(phone) return `phone_${phone}`;
         return `fallback_${idxFallback}`;
     }
@@ -987,35 +1115,63 @@
         statsSpan.innerHTML = `📌 Exibindo ${filteredData.length} leads | Total base: ${masterData.length}`;
     }
 
-    function getResponsaveisTexto(data) {
-        if (!data) return "?";
-        if (Array.isArray(data.responsaveis) && data.responsaveis.length) {
-            return data.responsaveis.filter(Boolean).map(escapeHtml).join(" | ");
+    function getContatosRegistrados(data) {
+        if (!data) return [];
+        if (Array.isArray(data.contatos) && data.contatos.length) {
+            return data.contatos
+                .filter(c => c && c.responsavel)
+                .slice(0, 3);
         }
-        const lista = [data.responsavel1, data.responsavel2, data.responsavel3].filter(Boolean);
-        if (lista.length) return lista.map(escapeHtml).join(" | ");
-        return data.responsavel ? escapeHtml(data.responsavel) : "?";
+
+        const responsaveis = Array.isArray(data.responsaveis)
+            ? data.responsaveis
+            : [data.responsavel1 || data.responsavel || "", data.responsavel2 || "", data.responsavel3 || ""];
+
+        const datas = [
+            data.dataHoraContato1 || data.dataHoraContato || "",
+            data.dataHoraContato2 || "",
+            data.dataHoraContato3 || ""
+        ];
+
+        return responsaveis.map((responsavel, index) => ({
+            responsavel,
+            dataHora: datas[index] || ""
+        })).filter(c => c.responsavel).slice(0, 3);
+    }
+
+    function getResponsaveisTexto(data) {
+        const contatos = getContatosRegistrados(data);
+        if (contatos.length) {
+            return contatos.map(c => escapeHtml(c.responsavel)).join(" | ");
+        }
+        return data && data.responsavel ? escapeHtml(data.responsavel) : "?";
+    }
+
+    function getContatosResumoHtml(data) {
+        const contatos = getContatosRegistrados(data);
+        if (!contatos.length) return "?";
+        return contatos.map((c, index) => {
+            const dataTexto = c.dataHora ? ` <small style="color:#6c86a3;">(${formatDateTimeBR(c.dataHora)})</small>` : "";
+            return `${index + 1}º ${escapeHtml(c.responsavel)}${dataTexto}`;
+        }).join("<br>");
     }
 
     function getLastContactSummary(row, idx) {
         const key = getLeadKey(row, idx);
         const data = acompanhamentos[key];
         if (data && data.contatoRealizado === "SIM") {
-            const responsavel = getResponsaveisTexto(data);
-            const dataReg = data.dataRegistro ? data.dataRegistro : "data não registrada";
+            const contatosResumo = getContatosResumoHtml(data);
             let matriculaIcon = '';
             if (data.vaiMatricular === "SIM") {
                 matriculaIcon = '<span class="indicator-sim">✅</span>';
-                return `${matriculaIcon} ${responsavel} (${dataReg})`;
             } else if (data.vaiMatricular === "NAO") {
                 matriculaIcon = '<span class="indicator-nao">❌</span>';
-                return `${matriculaIcon} ${responsavel} (${dataReg})`;
             } else if (data.vaiMatricular === "TALVEZ") {
                 matriculaIcon = '<span class="indicator-talvez">🟠</span>';
-                return `${matriculaIcon} ${responsavel} (${dataReg})`;
             } else {
-                return `✅ ${responsavel} (${dataReg})`;
+                matriculaIcon = '✅';
             }
+            return `${matriculaIcon} ${contatosResumo}`;
         } else if (data && data.contatoRealizado === "NAO") {
             return `⏳ Sem contato efetivo`;
         }
@@ -1080,12 +1236,20 @@
         // Carregar valores salvos
         document.querySelectorAll('input[name="contatoRealizado"]').forEach(r => r.checked = (r.value === (saved.contatoRealizado || '')));
         document.querySelectorAll('input[name="houveRetorno"]').forEach(r => r.checked = (r.value === (saved.houveRetorno || '')));
-        const responsaveisSalvos = Array.isArray(saved.responsaveis)
-            ? saved.responsaveis
-            : [saved.responsavel || "", saved.responsavel2 || "", saved.responsavel3 || ""];
+        const contatosSalvos = getContatosRegistrados(saved);
+        const responsaveisSalvos = contatosSalvos.length
+            ? contatosSalvos.map(c => c.responsavel)
+            : (Array.isArray(saved.responsaveis) ? saved.responsaveis : [saved.responsavel || "", saved.responsavel2 || "", saved.responsavel3 || ""]);
+        const datasSalvas = contatosSalvos.length
+            ? contatosSalvos.map(c => c.dataHora || "")
+            : [saved.dataHoraContato1 || saved.dataHoraContato || "", saved.dataHoraContato2 || "", saved.dataHoraContato3 || ""];
+
         document.getElementById("responsavelContato1").value = responsaveisSalvos[0] || "";
         document.getElementById("responsavelContato2").value = responsaveisSalvos[1] || "";
         document.getElementById("responsavelContato3").value = responsaveisSalvos[2] || "";
+        document.getElementById("dataHoraContato1").value = datasSalvas[0] || getLocalDateTimeValue();
+        document.getElementById("dataHoraContato2").value = datasSalvas[1] || "";
+        document.getElementById("dataHoraContato3").value = datasSalvas[2] || "";
         document.querySelectorAll('input[name="vaiMatricular"]').forEach(r => r.checked = (r.value === (saved.vaiMatricular || '')));
         document.getElementById("dataMatricula").value = saved.dataMatricula || "";
         document.getElementById("motivoNao").value = saved.motivoNao || "";
@@ -1135,6 +1299,10 @@
 
     // Função para salvar
     function saveContact() {
+        saveContactBtn.disabled = true;
+        saveContactBtn.innerText = "⏳ Salvando...";
+
+        try {
         const masterIdx = parseInt(modalStudentIndex.value);
         if(isNaN(masterIdx) || masterIdx < 0 || masterIdx >= masterData.length) {
             showNotification("Erro ao salvar: lead não encontrado!", true);
@@ -1148,8 +1316,17 @@
         const responsavel1 = document.getElementById("responsavelContato1").value;
         const responsavel2 = document.getElementById("responsavelContato2").value;
         const responsavel3 = document.getElementById("responsavelContato3").value;
-        const responsaveis = [responsavel1, responsavel2, responsavel3].filter(Boolean);
+        const dataHoraContato1 = document.getElementById("dataHoraContato1").value || (responsavel1 ? getLocalDateTimeValue() : "");
+        const dataHoraContato2 = document.getElementById("dataHoraContato2").value || (responsavel2 ? getLocalDateTimeValue() : "");
+        const dataHoraContato3 = document.getElementById("dataHoraContato3").value || (responsavel3 ? getLocalDateTimeValue() : "");
+        const contatos = [
+            { responsavel: responsavel1, dataHora: dataHoraContato1 },
+            { responsavel: responsavel2, dataHora: dataHoraContato2 },
+            { responsavel: responsavel3, dataHora: dataHoraContato3 }
+        ].filter(c => c.responsavel);
+        const responsaveis = contatos.map(c => c.responsavel);
         const responsavel = responsaveis.length ? responsaveis.join(" | ") : "";
+        const dataHoraContato = contatos.length ? contatos[0].dataHora : "";
         const vaiMatricular = document.querySelector('input[name="vaiMatricular"]:checked')?.value || "";
         const dataMatricula = document.getElementById("dataMatricula").value;
         const motivoNao = document.getElementById("motivoNao").value;
@@ -1170,6 +1347,11 @@
             responsavel2,
             responsavel3,
             responsaveis,
+            contatos,
+            dataHoraContato,
+            dataHoraContato1,
+            dataHoraContato2,
+            dataHoraContato3,
             vaiMatricular,
             dataMatricula: vaiMatricular === "SIM" ? dataMatricula : "",
             motivoNao: vaiMatricular === "NAO" ? motivoNao : "",
@@ -1177,11 +1359,27 @@
             observacaoTalvez: vaiMatricular === "TALVEZ" ? observacaoTalvez : "",
             dataRegistro: new Date().toLocaleString()
         };
-        persistCurrentUnit();
-        updateFilterOptions();
-        modal.classList.remove("active");
-        applyFilters();
-        showNotification("Acompanhamento e classificação salvos com sucesso!");
+        Promise.resolve(persistCurrentUnit())
+            .then(() => {
+                updateFilterOptions();
+                modal.classList.remove("active");
+                applyFilters();
+                showNotification("Acompanhamento e classificação salvos com sucesso!");
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification("Erro ao salvar acompanhamento: " + err.message, true);
+            })
+            .finally(() => {
+                saveContactBtn.disabled = false;
+                saveContactBtn.innerText = "💾 Salvar acompanhamento";
+            });
+        } catch (err) {
+            console.error(err);
+            showNotification("Erro inesperado ao salvar: " + err.message, true);
+            saveContactBtn.disabled = false;
+            saveContactBtn.innerText = "💾 Salvar acompanhamento";
+        }
     }
 
     function renderCharts() {
@@ -1292,10 +1490,13 @@
                 "Cidade": row[colMap.cidade]||"",
                 "Contato Realizado": a.contatoRealizado || "",
                 "Houve Retorno": a.houveRetorno || "",
-                "Responsável 1": a.responsavel1 || (Array.isArray(a.responsaveis) ? (a.responsaveis[0] || "") : (a.responsavel || "")),
-                "Responsável 2": a.responsavel2 || (Array.isArray(a.responsaveis) ? (a.responsaveis[1] || "") : ""),
-                "Responsável 3": a.responsavel3 || (Array.isArray(a.responsaveis) ? (a.responsaveis[2] || "") : ""),
-                "Responsáveis Consolidados": Array.isArray(a.responsaveis) ? a.responsaveis.join(" | ") : (a.responsavel || ""),
+                "Responsável 1": (a.contatos && a.contatos[0] ? a.contatos[0].responsavel : "") || a.responsavel1 || (Array.isArray(a.responsaveis) ? (a.responsaveis[0] || "") : (a.responsavel || "")),
+                "Data e Hora Contato 1": (a.contatos && a.contatos[0] ? formatDateTimeBR(a.contatos[0].dataHora) : "") || (a.dataHoraContato1 ? formatDateTimeBR(a.dataHoraContato1) : (a.dataHoraContato ? formatDateTimeBR(a.dataHoraContato) : "")),
+                "Responsável 2": (a.contatos && a.contatos[1] ? a.contatos[1].responsavel : "") || a.responsavel2 || (Array.isArray(a.responsaveis) ? (a.responsaveis[1] || "") : ""),
+                "Data e Hora Contato 2": (a.contatos && a.contatos[1] ? formatDateTimeBR(a.contatos[1].dataHora) : "") || (a.dataHoraContato2 ? formatDateTimeBR(a.dataHoraContato2) : ""),
+                "Responsável 3": (a.contatos && a.contatos[2] ? a.contatos[2].responsavel : "") || a.responsavel3 || (Array.isArray(a.responsaveis) ? (a.responsaveis[2] || "") : ""),
+                "Data e Hora Contato 3": (a.contatos && a.contatos[2] ? formatDateTimeBR(a.contatos[2].dataHora) : "") || (a.dataHoraContato3 ? formatDateTimeBR(a.dataHoraContato3) : ""),
+                "Responsáveis Consolidados": getResponsaveisTexto(a),
                 "Vai Matricular": a.vaiMatricular || "",
                 "Data Prevista Matrícula": a.dataMatricula || "",
                 "Motivo Não Matrícula": a.motivoNao || "",
@@ -1363,6 +1564,20 @@
     modal.addEventListener("click", (e) => { if(e.target === modal) modal.classList.remove("active"); });
     
     document.querySelectorAll('input[name="vaiMatricular"]').forEach(r => r.addEventListener("change", atualizarCamposCondicionais));
+    [1, 2, 3].forEach(num => {
+        const responsavelEl = document.getElementById(`responsavelContato${num}`);
+        const dataHoraEl = document.getElementById(`dataHoraContato${num}`);
+        if (responsavelEl && dataHoraEl) {
+            responsavelEl.addEventListener("change", () => {
+                if (responsavelEl.value && !dataHoraEl.value) {
+                    dataHoraEl.value = getLocalDateTimeValue();
+                }
+                if (!responsavelEl.value) {
+                    dataHoraEl.value = "";
+                }
+            });
+        }
+    });
     
     saveContactBtn.addEventListener("click", saveContact);
     
