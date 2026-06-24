@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -898,7 +899,12 @@
 
             unitData[currentUnit] = payload;
 
-            return realtimeDB.ref(unitPath(currentUnit)).set(payload)
+            return realtimeDB.ref(unitPath(currentUnit))
+                .set(payload)
+                .then(() => {
+                    console.log("✅ Dados salvos com sucesso na nuvem:", currentUnit, payload.atualizadoEm);
+                    return payload;
+                })
                 .catch(err => {
                     console.error(err);
                     showNotification("Erro ao salvar na nuvem: " + err.message, true);
@@ -1024,7 +1030,14 @@
             masterData = [];
             acompanhamentos = {};
             unitData[currentUnit] = { masterData: [], acompanhamentos: {}, colMap };
-            persistCurrentUnit();
+            persistCurrentUnit()
+                .then(() => {
+                    showNotification("✅ Dados removidos e alteração salva na nuvem.");
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("❌ Erro ao salvar limpeza na nuvem: " + err.message, true);
+                });
             updateFilterOptions();
             applyFilters();
             emptyStateDiv.style.display = "block";
@@ -1306,6 +1319,8 @@
         const masterIdx = parseInt(modalStudentIndex.value);
         if(isNaN(masterIdx) || masterIdx < 0 || masterIdx >= masterData.length) {
             showNotification("Erro ao salvar: lead não encontrado!", true);
+            saveContactBtn.disabled = false;
+            saveContactBtn.innerText = "💾 Salvar acompanhamento";
             return;
         }
         const row = masterData[masterIdx];
@@ -1463,7 +1478,15 @@
                     emptyStateDiv.style.display = "block";
                     dataContentDiv.style.display = "none";
                 }
-                persistCurrentUnit();
+                persistCurrentUnit()
+                    .then(() => {
+                        showNotification("✅ Dados importados e salvos na nuvem com sucesso!");
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showNotification("❌ Erro ao salvar importação na nuvem: " + err.message, true);
+                    });
+
                 if(chartPanel.style.display === "block") renderCharts();
             } catch(err) {
                 console.error(err);
